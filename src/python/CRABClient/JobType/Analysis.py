@@ -247,6 +247,9 @@ class Analysis(BasicJobType):
 
         configArguments['jobtype'] = 'Analysis'
 
+        # acceleratorparams
+        configArguments.update(self.getAcceleratorParams())
+
         return tarFilename, configArguments
 
     def checkAutomaticAvail(self, allowedSplitAlgos):
@@ -355,3 +358,14 @@ class Analysis(BasicJobType):
             except Exception as ex:
                 msg = "Cannot move either %s or %s to %s. Error is: %s" % (bootCfgname, bootCfgPklname, destination, ex)
                 raise EnvironmentException(msg)
+
+    def getAcceleratorParams(self):
+        userParams = getattr(self.config.Site, 'acceleratorParams', None)
+        if userParams:
+            serverParams = {
+                'accelerator_gpumemorymb': userParams.get('GPUMemoryMB', None),
+                'accelerator_cudacapabilities': userParams.get('CUDACapabilities', None),
+                'accelerator_cudaruntime': userParams.get('CUDARuntime', None),
+            }
+            return serverParams
+        return {}

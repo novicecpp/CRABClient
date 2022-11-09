@@ -126,7 +126,8 @@ class submit(SubCommand):
         self.logger.debug("Submitting %s " % str(self.configreq))
         ## TODO: this shouldn't be hard-coded.
         listParams = ['addoutputfiles', 'sitewhitelist', 'siteblacklist', 'blockwhitelist', 'blockblacklist', \
-                      'tfileoutfiles', 'edmoutfiles', 'runs', 'lumis', 'userfiles', 'scriptargs', 'extrajdl']
+                      'tfileoutfiles', 'edmoutfiles', 'runs', 'lumis', 'userfiles', 'scriptargs', 'extrajdl', \
+                      'accelerator_cudacapabilities']
         self.configreq_encoded = self._encodeRequest(self.configreq, listParams)
         self.logger.debug('Encoded submit request: %s' % (self.configreq_encoded))
 
