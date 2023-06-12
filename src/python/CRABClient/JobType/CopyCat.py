@@ -39,12 +39,20 @@ class CopyCat(BasicJobType):
     """
     def getTaskDict(self):
         #getting information about the task
+        import pdb; pdb.set_trace()
         inputlist = {'subresource':'search', 'workflow': self.config.JobType.copyCatTaskname}
         serverFactory = CRABClient.Emulator.getEmulator('rest')
         serverhost = SERVICE_INSTANCES.get(self.config.JobType.copyCatInstance)
-        server = serverFactory(serverhost, self.proxyfilename, self.proxyfilename, version=__version__)
+        server = serverFactory(hostname=serverhost['restHost'], localcert=self.proxyfilename,
+                               localkey=self.proxyfilename, retry=2, logger=self.logger,
+                               verbose=False, version=__version__, userAgent='CRABClient')
+        server.setDbInstance(serverhost['dbInstance'])
+        #self.crabserver = crabRest(hostname=self.serverurl, localcert=self.proxyfilename, localkey=self.proxyfilename,
+        #                                retry=2, logger=self.logger, verbose=False, version=__version__,
+        #                                userAgent='CRABClient')
+
         dictresult, dummyStatus, dummyReason = server.get(api='task', data=inputlist)
-        webdir = getProxiedWebDir(self.config.JobType.copyCatTaskname, serverhost, uri, self.proxyfilename, self.logger.debug)
+        webdir = getProxiedWebDir(server, self.config.JobType.copyCatTaskname, self.logger.debug)
         if not webdir:
             webdir = getColumn(dictresult, 'tm_user_webdir')
 
@@ -77,7 +85,8 @@ class CopyCat(BasicJobType):
         if getattr(self.config.Data, 'inputDataset', None):
             configArguments['inputdata'] = self.config.Data.inputDataset
 
-        ufc = CRABClient.Emulator.getEmulator('ufc')({'endpoint' : filecacheurl, "pycurl": True})
+        # wa note: try to debug and give up on this line
+        ufc = CRABClient.Emulator.getEmulator('ufc')({'endpoint' : filecacheurl})
         result = ufc.upload(sandboxFilename, excludeList = NEW_USER_SANDBOX_EXCLUSIONS)
         if 'hashkey' not in result:
             self.logger.error("Failed to upload source files: %s" % str(result))
@@ -145,7 +154,6 @@ class CopyCat(BasicJobType):
         Validate the CMSSW portion of the config file making sure
         required values are there and optional values don't conflict.
         """
-
         valid, reason = self.validateBasicConfig(config)
         if not valid:
             return valid, reason
@@ -159,11 +167,11 @@ class CopyCat(BasicJobType):
 
         ## Make sure at least one of the two parameters Data.inputDataset and Data.userInputFiles
         ## was specified.
-        if not getattr(config.Data, 'inputDataset', None) and not getattr(config.Data, 'userInputFiles', None):
-            msg  = "Invalid CRAB configuration: Analysis job type requires an input dataset or a set of user input files to run on."
-            msg += "\nSuggestion: To specify an input dataset use the parameter Data.inputDataset."
-            msg += " To specify a set of user input files use the parameter Data.userInputFiles."
-            return False, msg
+        #if not getattr(config.Data, 'inputDataset', None) and not getattr(config.Data, 'userInputFiles', None):
+        #    msg  = "Invalid CRAB configuration: Analysis job type requires an input dataset or a set of user input files to run on."
+        #    msg += "\nSuggestion: To specify an input dataset use the parameter Data.inputDataset."
+        #    msg += " To specify a set of user input files use the parameter Data.userInputFiles."
+        #    return False, msg
 
         ## When running over an input dataset, we don't accept that the user specifies a
         ## primary dataset, because the primary dataset will already be extracted from

@@ -25,5 +25,6 @@ def setEmulator(name, value):
 
 def getDefaults():
     import CRABClient.CrabRestInterface
+    import CRABClient.JobType.UserTarball
     return {'rest' : CRABClient.CrabRestInterface.CRABRest,
-            'ufc' : 'dummy_ufc'}
+            'ufc' : CRABClient.JobType.UserTarball.UserTarball,}
