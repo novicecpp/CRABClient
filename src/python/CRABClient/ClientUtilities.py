@@ -220,7 +220,7 @@ def uploadlogfile(logger, proxyfilename, taskname=None, logfilename=None, logpat
     if proxyfilename == None:
         logger.debug('No proxy was given')
         doupload = False
-        
+
     if doupload:
         # uploadLog is executed directly from crab main script, does not inherit from SubCommand
         # so it needs its own REST server instantiation
@@ -795,4 +795,3 @@ def execute_command(command=None, logger=None, timeout=None, redirect=True):
         logger.debug('output : %s\n error: %s\n retcode : %s' % (stdout, stderr, rc))
 
     return stdout, stderr, rc
-

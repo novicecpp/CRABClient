@@ -125,6 +125,8 @@ class CRABClient(object):
 
             logger.error("\tPlease use 'crab uploadlog' to upload the log file %s to the CRAB cache.", client.logger.logfile)
 
+            logger.error(exc_value, exc_info = (exc_type, exc_value, tback))
+
         sys.excepthook = log_exception
 
         # check that the command is valid
@@ -205,4 +207,3 @@ if __name__ == "__main__":
         client.logger.info('Log file is %s', client.logger.logfile)
 
     sys.exit( exitcode )
-
