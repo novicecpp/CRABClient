@@ -39,7 +39,7 @@ class CopyCat(BasicJobType):
     """
     def getTaskDict(self):
         #getting information about the task
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         inputlist = {'subresource':'search', 'workflow': self.config.JobType.copyCatTaskname}
         serverFactory = CRABClient.Emulator.getEmulator('rest')
         serverhost = SERVICE_INSTANCES.get(self.config.JobType.copyCatInstance)

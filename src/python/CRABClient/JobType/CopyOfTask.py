@@ -107,10 +107,13 @@ class CopyOfTask(BasicJobType):
 
         #import pdb; pdb.set_trace()
 
+        copyOfTaskCrabConfig = os.path.join(self.workdir, 'CopyOfTask/debug/crabConfig.py')
+        copyOfTaskPSet = os.path.join(self.workdir, 'CopyOfTask/debug/originalPSet.py')
         debugFilesUploadResult = None
         with UserTarball(name=localPathDebugfilename, logger=self.logger, config=self.config,
                          crabserver=self.crabserver, s3tester=self.s3tester) as dtb:
-            dtb.addMonFilesCopyOfTask()
+
+            dtb.addMonFilesCopyOfTask(copyOfTaskCrabConfig, copyOfTaskPSet)
             try:
                 debugFilesUploadResult = dtb.upload(filecacheurl = filecacheurl)
             except Exception as e:
@@ -118,15 +121,15 @@ class CopyOfTask(BasicJobType):
                        "More details can be found in %s" % (e, self.logger.logfile))
                 LOGGERS['CRAB3'].exception(msg) #the traceback is only printed into the logfile
 
-
         #import pdb; pdb.set_trace()
 
         # parse config (copy from submit subcommand)
         cfgcmd = ConfigCommand()
         cfgcmd.logger = self.logger
-        #cfgcmd.loadConfig(os.path.join(self.workdir, 'CopyOfTask/debug/crabConfig.py'))
-        cfgcmd.loadConfig('crabConfig2.py')
-        cfgcmd.configuration.JobType.psetName = os.path.join(self.workdir, 'CopyOfTask/debug/originalPSet.py')
+        cfgcmd.loadConfig(copyOfTaskCrabConfig)
+        #cfgcmd.loadConfig('crabConfig2.py')
+        cfgcmd.configuration.JobType.psetName = copyOfTaskPSet
+        # remove lumimasks here to prevent loading lumis form file
         cfgcmd.configuration.Data.lumiMask = None
         cfgcmd.configuration.Data.runRange = None
 
@@ -207,6 +210,7 @@ class CopyOfTask(BasicJobType):
         # new filename
         configreq['cachefilename'] = newCachefilename
         configreq['debugfilename'] = newDebugfilename
+        configreq['debugfilename'] = "%s.tar.gz" % debugFilesUploadResult
         configreq['cacheurl'] = filecacheurl
 
         #import pdb; pdb.set_trace()

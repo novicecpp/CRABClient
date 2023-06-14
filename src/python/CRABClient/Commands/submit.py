@@ -120,7 +120,7 @@ class submit(SubCommand):
                 self.logger.warning(msg)
 
         self.configreq.update(jobconfig)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         server = self.crabserver
 
         self.logger.info("Sending the request to the server at %s" % self.serverurl)

@@ -231,16 +231,16 @@ class UserTarball(object):
 
         configtmp.close()
 
-    def addMonFilesCopyOfTask(self):
+    def addMonFilesCopyOfTask(self, copyoftaskcrabconfigpath, copyoftaskpsetpath):
         """
         Add monitoring files the debug tarball.
         """
         configtmp = tempfile.NamedTemporaryFile(mode='w', delete=True)
         configtmp.write(str(self.config))
         configtmp.flush()
-        self.tarfile.add(configtmp.name, '/debug/originalPSet.py')
+        self.tarfile.add(copyoftaskpsetpath, '/debug/originalPSet.py')
         self.tarfile.add(configtmp.name, '/debug/crabConfig.py')
-        self.tarfile.add(configtmp.name, '/CopyOfTask/debug/crabConfig.py')
+        self.tarfile.add(copyoftaskcrabconfigpath, '/CopyOfTask/debug/crabConfig.py')
 
         scriptExe = getattr(self.config.JobType, 'scriptExe', None)
         if scriptExe:
