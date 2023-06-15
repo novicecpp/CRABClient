@@ -112,7 +112,7 @@ class CopyOfTask(BasicJobType):
 
         self.initCRABRest()
         jobInfoDict = self.getTaskDict()
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
         # reupload sandbox with new hash (from sandbox filename)
         newCachefilename = f"{hashlib.sha256(jobInfoDict['cachefilename'].encode('utf-8')).hexdigest()}.tar.gz"
