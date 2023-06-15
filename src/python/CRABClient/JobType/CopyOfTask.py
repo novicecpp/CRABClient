@@ -239,7 +239,7 @@ class CopyOfTask(BasicJobType):
         configreq.pop('publishname2', None)
         configreq.pop('asyncdest', None)
 
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
         return '', configreq
 
 
