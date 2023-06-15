@@ -17,6 +17,7 @@ import json
 import hashlib
 import tarfile
 import ast
+import json
 
 from FWCore.PythonUtilities.LumiList import LumiList
 
@@ -66,7 +67,7 @@ class CopyOfTask(BasicJobType):
 
         dictret, dummyStatus, dummyReason = self.crabserverCopyOfTask.get(api='task', data=inputlist)
 
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
         task = {}
         self.logger.debug(dictret)
@@ -88,8 +89,7 @@ class CopyOfTask(BasicJobType):
         tmp = ast.literal_eval(getColumn(dictret, 'tm_split_args'))
         task['runs'] = tmp['runs']
         task['lumis'] = tmp['lumis']
-        import pdb; pdb.set_trace()
-        import json
+        #import pdb; pdb.set_trace()
         tmp = json.loads(getColumn(dictret, 'tm_user_config'))
         if tmp['inputblocks']:
             task['inputblocks'] = tmp['inputblocks']
@@ -107,7 +107,7 @@ class CopyOfTask(BasicJobType):
 
         self.initCRABRest()
         jobInfoDict = self.getTaskDict()
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
         # reupload sandbox with new hash (from sandbox filename)
         newCachefilename = f"{hashlib.sha256(jobInfoDict['cachefilename'].encode('utf-8')).hexdigest()}.tar.gz"
