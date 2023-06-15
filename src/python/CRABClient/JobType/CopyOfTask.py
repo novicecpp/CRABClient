@@ -66,19 +66,38 @@ class CopyOfTask(BasicJobType):
 
         dictret, dummyStatus, dummyReason = self.crabserverCopyOfTask.get(api='task', data=inputlist)
 
-        dictresult = {}
-        self.logger.debug(dictret)
-        dictresult['username'] = getColumn(dictret, 'tm_username')
-        dictresult['cacheurl'] = getColumn(dictret, 'tm_cache_url')
-        dictresult['cachefilename'] = getColumn(dictret, 'tm_user_sandbox')
-        dictresult['debugfilename'] = getColumn(dictret, 'tm_debug_files')
-        dictresult['jobsw'] = getColumn(dictret, 'tm_job_sw')
-        dictresult['jobarch'] = getColumn(dictret, 'tm_job_arch')
-        tmp = ast.literal_eval(getColumn(dictret, 'tm_split_args'))
-        dictresult['runs'] = tmp['runs']
-        dictresult['lumis'] = tmp['lumis']
+        import pdb; pdb.set_trace()
 
-        return dictresult
+        task = {}
+        self.logger.debug(dictret)
+        task['username'] = getColumn(dictret, 'tm_username')
+        task['jobarch'] = getColumn(dictret, 'tm_job_arch')
+        task['jobsw'] = getColumn(dictret, 'tm_job_sw')
+        task['inputdata'] = getColumn(dictret, 'tm_input_dataset')
+        task['edmoutfiles'] = ast.literal_eval(getColumn(dictret, 'tm_edm_outfiles'))
+        task['tfileoutfiles'] = ast.literal_eval(getColumn(dictret, 'tm_tfile_outfiles'))
+        task['addoutputfiles'] = ast.literal_eval(getColumn(dictret, 'tm_outfiles'))
+
+        # use for download original task cache
+        task['cachefilename'] = getColumn(dictret, 'tm_user_sandbox')
+        task['debugfilename'] = getColumn(dictret, 'tm_debug_files')
+
+        task['userfiles'] = ast.literal_eval(getColumn(dictret, 'tm_user_files'))
+        task['primarydataset'] = getColumn(dictret, 'tm_primary_dataset')
+        task['jobtype'] = getColumn(dictret, 'tm_job_type')
+        tmp = ast.literal_eval(getColumn(dictret, 'tm_split_args'))
+        task['runs'] = tmp['runs']
+        task['lumis'] = tmp['lumis']
+        import pdb; pdb.set_trace()
+        import json
+        tmp = json.loads(getColumn(dictret, 'tm_user_config'))
+        if tmp['inputblocks']:
+            task['inputblocks'] = tmp['inputblocks']
+
+        if task['jobtype'] == 'PrivateMC':
+            task['generator'] = getColumn(dictret, 'tm_generator')
+
+        return task
 
 
     def run(self, filecacheurl = None):
@@ -87,22 +106,23 @@ class CopyOfTask(BasicJobType):
         """
 
         self.initCRABRest()
+        jobInfoDict = self.getTaskDict()
+        import pdb; pdb.set_trace()
 
         # reupload sandbox with new hash (from sandbox filename)
-        taskInfoDict = self.getTaskDict()
-        newCachefilename = f"{hashlib.sha256(taskInfoDict['cachefilename'].encode('utf-8')).hexdigest()}.tar.gz"
+        newCachefilename = f"{hashlib.sha256(jobInfoDict['cachefilename'].encode('utf-8')).hexdigest()}.tar.gz"
         localPathCachefilename = os.path.join(self.workdir, newCachefilename)
-        downloadFromS3(crabserver=self.crabserverCopyOfTask, username=taskInfoDict['username'], objecttype='sandbox', logger=self.logger,
-                       tarballname=taskInfoDict['cachefilename'], filepath=localPathCachefilename)
+        downloadFromS3(crabserver=self.crabserverCopyOfTask, username=jobInfoDict['username'], objecttype='sandbox', logger=self.logger,
+                       tarballname=jobInfoDict['cachefilename'], filepath=localPathCachefilename)
         uploadToS3(crabserver=self.crabserver, objecttype='sandbox', filepath=localPathCachefilename,
                    tarballname=newCachefilename, logger=self.logger)
 
-        newDebugfilename = f"{hashlib.sha256(taskInfoDict['debugfilename'].encode('utf-8')).hexdigest()}.tar.gz"
+        newDebugfilename = f"{hashlib.sha256(jobInfoDict['debugfilename'].encode('utf-8')).hexdigest()}.tar.gz"
         localPathDebugfilename = os.path.join(self.workdir, newDebugfilename)
-        downloadFromS3(crabserver=self.crabserverCopyOfTask, username=taskInfoDict['username'], objecttype='sandbox', logger=self.logger,
-                       tarballname=taskInfoDict['debugfilename'], filepath=taskInfoDict['debugfilename'])
+        downloadFromS3(crabserver=self.crabserverCopyOfTask, username=jobInfoDict['username'], objecttype='sandbox', logger=self.logger,
+                       tarballname=jobInfoDict['debugfilename'], filepath=jobInfoDict['debugfilename'])
 
-        tar = tarfile.open(taskInfoDict['debugfilename'], mode='r')
+        tar = tarfile.open(jobInfoDict['debugfilename'], mode='r')
         tar.extractall(path=os.path.join(self.workdir, "CopyOfTask"))
 
         #import pdb; pdb.set_trace()
@@ -180,18 +200,18 @@ class CopyOfTask(BasicJobType):
                 configreq[param] = os.path.basename(configreq[param])
             elif param in ['acceleratorparams'] and param in configreq:
                 configreq[param] = json.dumps(configreq[param])
-
-
-        #import pdb; pdb.set_trace()
-
-        # parsing Analysis jobtype
-        pluginParams = [cfgcmd.configuration, self.proxyfilename, self.logger,
-                        self.workdir, self.crabserver, self.s3tester]
-        plugjobtype = _AnalysisNoUpload(*pluginParams)
-        dummy_inputfiles, jobconfig = plugjobtype.run(filecacheurl)
-        #import pdb; pdb.set_trace()
-
-        configreq.update(jobconfig)
+        #
+        #
+        ##import pdb; pdb.set_trace()
+        #
+        ## parsing Analysis jobtype
+        #pluginParams = [cfgcmd.configuration, self.proxyfilename, self.logger,
+        #                self.workdir, self.crabserver, self.s3tester]
+        #plugjobtype = _AnalysisNoUpload(*pluginParams)
+        #dummy_inputfiles, jobconfig = plugjobtype.run(filecacheurl)
+        ##import pdb; pdb.set_trace()
+        #
+        #configreq.update(jobconfig)
 
         #import pdb; pdb.set_trace()
 
@@ -202,10 +222,8 @@ class CopyOfTask(BasicJobType):
         configreq.pop('outputDatasetTag', None)
         configreq.pop('asyncdest', None)
         # replace
-        configreq['jobsw'] = taskInfoDict['jobsw']
-        configreq['jobarch'] = taskInfoDict['jobarch']
-        configreq['runs'] = taskInfoDict['runs']
-        configreq['lumis'] = taskInfoDict['lumis']
+        jobInfoDict.pop('username', None)
+        configreq.update(jobInfoDict)
 
         # new filename
         configreq['cachefilename'] = newCachefilename
