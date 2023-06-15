@@ -220,14 +220,7 @@ class CopyOfTask(BasicJobType):
 
         #import pdb; pdb.set_trace()
 
-        # pop
-        configreq.pop('workflow', None)
-        configreq.pop('publication', None)
-        configreq.pop('outLFNDirBase', None)
-        configreq.pop('outputDatasetTag', None)
-        configreq.pop('asyncdest', None)
         # replace
-        jobInfoDict.pop('username', None)
         configreq.update(jobInfoDict)
 
         # new filename
@@ -236,7 +229,17 @@ class CopyOfTask(BasicJobType):
         configreq['debugfilename'] = "%s.tar.gz" % debugFilesUploadResult
         configreq['cacheurl'] = filecacheurl
 
-        #import pdb; pdb.set_trace()
+        # pop
+        configreq.pop('username', None)
+        configreq.pop('workflow', None)
+        configreq.pop('publication', None)
+        # outputlfndirbase
+        configreq.pop('lfn', None)
+        # outputtag
+        configreq.pop('publishname2', None)
+        configreq.pop('asyncdest', None)
+
+        import pdb; pdb.set_trace()
         return '', configreq
 
 
