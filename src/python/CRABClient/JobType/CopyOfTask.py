@@ -75,15 +75,20 @@ class CopyOfTask(BasicJobType):
         task['jobarch'] = getColumn(dictret, 'tm_job_arch')
         task['jobsw'] = getColumn(dictret, 'tm_job_sw')
         task['inputdata'] = getColumn(dictret, 'tm_input_dataset')
+        # crabclient send none to server and server confuse
+        if not task['inputdata']:
+            task.pop('inputdata')
+
+        # it is a list in string format
         task['edmoutfiles'] = ast.literal_eval(getColumn(dictret, 'tm_edm_outfiles'))
         task['tfileoutfiles'] = ast.literal_eval(getColumn(dictret, 'tm_tfile_outfiles'))
         task['addoutputfiles'] = ast.literal_eval(getColumn(dictret, 'tm_outfiles'))
+        task['userfiles'] = ast.literal_eval(getColumn(dictret, 'tm_user_files'))
 
         # use for download original task cache
         task['cachefilename'] = getColumn(dictret, 'tm_user_sandbox')
         task['debugfilename'] = getColumn(dictret, 'tm_debug_files')
 
-        task['userfiles'] = ast.literal_eval(getColumn(dictret, 'tm_user_files'))
         task['primarydataset'] = getColumn(dictret, 'tm_primary_dataset')
         task['jobtype'] = getColumn(dictret, 'tm_job_type')
         tmp = ast.literal_eval(getColumn(dictret, 'tm_split_args'))
@@ -107,7 +112,7 @@ class CopyOfTask(BasicJobType):
 
         self.initCRABRest()
         jobInfoDict = self.getTaskDict()
-        #import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
 
         # reupload sandbox with new hash (from sandbox filename)
         newCachefilename = f"{hashlib.sha256(jobInfoDict['cachefilename'].encode('utf-8')).hexdigest()}.tar.gz"
