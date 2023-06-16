@@ -174,6 +174,7 @@ class checkwrite(SubCommand):
     def getPFN(self, site='T2_CH_CERN', lfn='/store/user', username='jdoe'):
 
         # prepare a simply python script to resolve lfn2pfn via Rucio
+        self.logger.debug("site: %s, lfn: %s, username: %s" % (site, lfn, username))
         template = """
 from rucio.client import Client
 client = Client()
