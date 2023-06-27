@@ -123,11 +123,12 @@ class CopyOfTask(BasicJobType):
                    tarballname=newCachefilename, logger=self.logger)
 
         newDebugfilename = f"{hashlib.sha256(jobInfoDict['debugfilename'].encode('utf-8')).hexdigest()}.tar.gz"
-        localPathDebugfilename = os.path.join(self.workdir, newDebugfilename)
+        localPathDebugfilename = os.path.join(self.workdir, jobInfoDict['debugfilename'])
+        newDebugPath = os.path.join(self.workdir, newDebugfilename)
         downloadFromS3(crabserver=self.crabserverCopyOfTask, username=jobInfoDict['username'], objecttype='sandbox', logger=self.logger,
-                       tarballname=jobInfoDict['debugfilename'], filepath=jobInfoDict['debugfilename'])
+                       tarballname=jobInfoDict['debugfilename'], filepath=localPathDebugfilename)
 
-        tar = tarfile.open(jobInfoDict['debugfilename'], mode='r')
+        tar = tarfile.open(localPathDebugfilename, mode='r')
         tar.extractall(path=os.path.join(self.workdir, "CopyOfTask"))
 
         #import pdb; pdb.set_trace()
@@ -135,7 +136,7 @@ class CopyOfTask(BasicJobType):
         copyOfTaskCrabConfig = os.path.join(self.workdir, 'CopyOfTask/debug/crabConfig.py')
         copyOfTaskPSet = os.path.join(self.workdir, 'CopyOfTask/debug/originalPSet.py')
         debugFilesUploadResult = None
-        with UserTarball(name=localPathDebugfilename, logger=self.logger, config=self.config,
+        with UserTarball(name=newDebugPath, logger=self.logger, config=self.config,
                          crabserver=self.crabserver, s3tester=self.s3tester) as dtb:
 
             dtb.addMonFilesCopyOfTask(copyOfTaskCrabConfig, copyOfTaskPSet)
@@ -239,6 +240,15 @@ class CopyOfTask(BasicJobType):
         configreq.pop('publishname2', None)
         configreq.pop('asyncdest', None)
 
+        # optional pop
+        if getattr(self.config.Data, 'splitting', None):
+            configreq.pop('splitalgo', None)
+        if getattr(self.config.Data, 'totalUnits', None):
+            configreq.pop('totalunits', None)
+        if getattr(self.config.Data, 'unitsPerJob', None):
+            configreq.pop('algoargs', None)
+        if getattr(self.config.JobType, 'maxJobRuntimeMin', None):
+            configreq.pop('maxjobruntime', None)
         #import pdb; pdb.set_trace()
         return '', configreq
 
