@@ -119,7 +119,15 @@ class submit(SubCommand):
                       % (colors.RED, colors.NORMAL, non_edm_files)
                 self.logger.warning(msg)
 
+        self.logger.debug("self.configreq before merge with jobconfig:")
+        self.logger.debug(self.configreq)
+        self.logger.debug("value return from jobconfig:")
+        self.logger.debug(jobconfig)
+
         self.configreq.update(jobconfig)
+
+        self.logger.debug("self.configreq after merge with jobconfig:")
+        self.logger.debug(self.configreq)
         #import pdb; pdb.set_trace()
         server = self.crabserver
 
@@ -154,7 +162,8 @@ class submit(SubCommand):
         projDir = os.path.join(getattr(self.configuration.General, 'workArea', '.'), self.requestname)
         self.logger.info("Project dir: %s" % projDir)
         if not (self.options.wait or self.options.dryrun):
-            self.logger.info("Please use ' crab status -d %s ' to check how the submission process proceeds.", projDir)
+            self.logger.info("Please use command below to check how the submission process proceeds.")
+            self.logger.info("crab status -d %s", projDir)
         else:
             targetTaskStatus = 'UPLOADED' if self.options.dryrun else 'SUBMITTED'
             checkStatusLoop(self.logger, server, self.defaultApi, uniquerequestname, targetTaskStatus, self.name)

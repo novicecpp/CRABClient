@@ -233,7 +233,6 @@ class CopyOfTask(BasicJobType):
         # pop
         configreq.pop('username', None)
         configreq.pop('workflow', None)
-        configreq.pop('publication', None)
         # outputlfndirbase
         configreq.pop('lfn', None)
         # outputtag
@@ -249,6 +248,10 @@ class CopyOfTask(BasicJobType):
             configreq.pop('algoargs', None)
         if getattr(self.config.JobType, 'maxJobRuntimeMin', None):
             configreq.pop('maxjobruntime', None)
+        if getattr(self.config.Data, 'publication', None) != None:
+            configreq.pop('publication', None)
+        if getattr(self.config.General, 'transferLogs', None) != None:
+            configreq.pop('savelogsflag', None)
         #import pdb; pdb.set_trace()
         return '', configreq
 
