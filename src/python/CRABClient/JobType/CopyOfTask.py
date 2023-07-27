@@ -233,6 +233,7 @@ class CopyOfTask(BasicJobType):
         # pop
         configreq.pop('username', None)
         configreq.pop('workflow', None)
+        configreq.pop('vogroup', None)
         # outputlfndirbase
         configreq.pop('lfn', None)
         # outputtag
