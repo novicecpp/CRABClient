@@ -80,7 +80,8 @@ parametersMapping = {
                                      {'default': False,      'config': ['JobType.disableAutomaticOutputCollection'],'type': 'BooleanType', 'required': False},
                                      {'default': None,       'config': ['JobType.copyCatTaskname'],         'type': 'StringType',  'required': False},
                                      {'default': 'prod',     'config': ['JobType.copyCatInstance'],         'type': 'StringType',  'required': False},
-                                     {'default': [],         'config': ['JobType.inputFiles'],              'type': 'ListType',    'required': False}
+                                     {'default': [],         'config': ['JobType.inputFiles'],              'type': 'ListType',    'required': False},
+                                     {'default': 'sitelocal',  'config': ['Data.destinationStorageArea'],   'type': 'StringType',  'required': False},
                            ]
 }
 

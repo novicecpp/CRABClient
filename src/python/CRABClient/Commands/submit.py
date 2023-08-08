@@ -92,6 +92,11 @@ class submit(SubCommand):
                 self.configreq[param] = os.path.basename(self.configreq[param])
             elif param in ['acceleratorparams'] and param in self.configreq:
                 self.configreq[param] = json.dumps(self.configreq[param])
+            elif self.configuration.Data, 'destinationArea', None) == 'rucio':
+                self.configreq['lfn'] =
+
+
+        import pdb; pdb.set_trace()
 
         jobconfig = {}
         #get the backend URLs from the server external configuration
