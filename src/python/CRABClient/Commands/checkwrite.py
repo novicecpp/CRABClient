@@ -61,12 +61,7 @@ class checkwrite(SubCommand):
 
         # if user asked to to use Rucio for ASO we simply check quota, since user can't directly write there
         if self.lfnPrefix.startswith('/store/user/rucio/') or self.lfnPrefix.startswith('/store/group/rucio/'):
-            if self.lfnPrefix.startswith('/store/group/rucio/'):
-                # Rucio group's username always has `_group` suffix.
-                rucioUsername = '%s_group' % self.lfnPrefix.split('/')[4]
-            else:
-                rucioUsername = username
-            status = self.checkRucioQuota(rucioUsername, site)
+            status = self.checkRucioQuota(self.lfnPrefix, site)
             return {'commandStatus': status}
 
         cp_cmd = ""
@@ -242,11 +237,11 @@ exit(0)
         return pfn
 
 
-    def checkRucioQuota(self, username, site):
+    def checkRucioQuota(self, lfn, site):
         if not self.rucio:
             self.logger.warning("Rucio client not available with this CMSSW version. Can not check")
             return {'commandStatus':'FAILED'}
-        hasQuota, isEnough, isQuotaWarning, remainQuota = isEnoughRucioQuota(self.rucio, username, site)
+        hasQuota, isEnough, isQuotaWarning, remainQuota = isEnoughRucioQuota(self.rucio, site)
         if hasQuota and isEnough:
             status = 'SUCCESS'
             msg = "you have %d GB available as Rucio quota at site %s" % (remainQuota, site)
@@ -265,7 +260,7 @@ exit(0)
 
         # print summary of rucio quota
         msg = "FYI this is your Rucio quota situation (rounded to GBytes = 10^9 Bytes)"
-        quotaRecords = self.rucio.get_local_account_usage(username)
+        quotaRecords = self.rucio.get_local_account_usage(self.rucio.account)
         msg += "\n%20s%10s%10s%10s" % ('Site', 'Quota', 'Used', 'Free')
         for record in quotaRecords:
             site = record['rse']
@@ -274,7 +269,7 @@ exit(0)
             freeGB = record['bytes_remaining'] / 1000 / 1000 / 1000
             msg += "\n%20s%10d%10d%10d" % (site, totalGB, usedGB, freeGB)
         self.logger.info(msg)
-        return status
+        return {'commandStatus': status}
 
     def cp(self, pfn, command):
 
