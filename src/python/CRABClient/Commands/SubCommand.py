@@ -17,8 +17,7 @@ from CRABClient.CRABOptParser import CRABCmdOptParser
 from CRABClient.CredentialInteractions import CredentialInteractions
 from CRABClient.ClientUtilities import loadCache, getWorkArea, server_info, createWorkArea, execute_command
 from CRABClient.ClientExceptions import (ConfigurationException, MissingOptionException,
-                                         EnvironmentException, CachefileNotFoundException,
-                                         RucioClientException)
+                                         EnvironmentException, CachefileNotFoundException)
 from CRABClient.ClientMapping import (renamedParams, commandsConfiguration, configParametersInfo,
                                       getParamDefaultValue, deprecatedParams)
 from CRABClient.UserUtilities import getUsername
@@ -375,28 +374,6 @@ class SubCommand(ConfigCommand):
                                       retry=0, logger=self.logger, verbose=False)
             self.s3tester.setDbInstance('preprod')
             self.handleMyProxy()
-
-        if self.cmdconf['requiresRucio']:
-            if os.environ.get('RUCIO_HOME', None):
-                from ServerUtilities import getRucioAccountFromLFN
-                from rucio.client import Client
-                from rucio.common.exception import RucioException
-                if hasattr(self.options, 'userlfn') and self.options.userlfn is not None\
-                    and (self.options.userlfn.startswith('/store/user/rucio/')
-                         or self.options.userlfn.startswith('/store/group/rucio/')):
-                    account = getRucioAccountFromLFN(self.options.userlfn)
-                else:
-                    account = getUsername(self.proxyfilename, logger=self.logger)
-                os.environ['RUCIO_ACCOUNT'] = account
-                try:
-                    self.rucio = Client()
-                    me = self.rucio.whoami()
-                    self.logger.info('Rucio client intialized for account %s' % me['account'])
-                except RucioException as e:
-                    msg = "Cannot initialize Rucio Client. Error: %s" % str(e)
-                    raise RucioClientException(msg)
-            else:
-                self.rucio = None
 
         # Validate the command options
         self.validateOptions()

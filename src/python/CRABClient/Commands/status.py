@@ -18,7 +18,7 @@ if sys.version_info >= (3, 0):
 if sys.version_info < (3, 0):
     from urllib import quote
 
-from CRABClient.ClientUtilities import colors, validateJobids, compareJobids
+from CRABClient.ClientUtilities import colors, initRucioClient, validateJobids, compareJobids
 from CRABClient.ClientUtilities import PKL_R_MODE
 from CRABClient.ClientUtilities import RUCIO_QUOTA_WARNING_GB, RUCIO_QUOTA_MINIMUM_GB
 from CRABClient.UserUtilities import curlGetFileFromURL, getColumn
@@ -73,6 +73,8 @@ class status(SubCommand):
         else:
             outputDatasetList = None
         outDataset = outputDatasetList[0] if outputDatasetList else None # we do not support multiple output datasets anymore
+
+        self.rucio = initRucioClient(self, outputLfn)
 
         #Print information from the database
         self.printTaskInfo(crabDBInfo, user)

@@ -25,7 +25,7 @@ from optparse import OptionValueError
 ## CRAB dependencies
 import CRABClient.Emulator
 from ServerUtilities import uploadToS3, getDownloadUrlFromS3
-from CRABClient.ClientExceptions import ClientException, TaskNotFoundException, CachefileNotFoundException, ConfigurationException, ConfigException, UsernameException, ProxyException, RESTCommunicationException
+from CRABClient.ClientExceptions import ClientException, TaskNotFoundException, CachefileNotFoundException, ConfigurationException, ConfigException, UsernameException, ProxyException, RESTCommunicationException, RucioClientException
 
 # pickle files need to be opeb in different mode in python2 or python3
 if sys.version_info >= (3, 0):
@@ -224,7 +224,7 @@ def uploadlogfile(logger, proxyfilename, taskname=None, logfilename=None, logpat
     if proxyfilename == None:
         logger.debug('No proxy was given')
         doupload = False
-        
+
     if doupload:
         # uploadLog is executed directly from crab main script, does not inherit from SubCommand
         # so it needs its own REST server instantiation
@@ -798,3 +798,25 @@ def execute_command(command=None, logger=None, timeout=None, redirect=True):
 
     return stdout, stderr, rc
 
+
+def initRucioClient(selfobj, lfn=None):
+    selfobj.rucio = None
+    if selfobj.cmdconf['requiresRucio']:
+        if os.environ.get('RUCIO_HOME', None):
+            from ServerUtilities import getRucioAccountFromLFN
+            from rucio.client import Client
+            from rucio.common.exception import RucioException
+            from CRABClient.UserUtilities import getUsername
+            if lfn and (lfn.startswith('/store/user/rucio/')\
+               or lfn.startswith('/store/group/rucio/')):
+                account = getRucioAccountFromLFN(selfobj.options.userlfn)
+            else:
+                account = getUsername(selfobj.proxyfilename, logger=selfobj.logger)
+            os.environ['RUCIO_ACCOUNT'] = account
+            try:
+                selfobj.rucio = Client()
+                me = selfobj.rucio.whoami()
+                selfobj.logger.info('Rucio client intialized for account %s' % me['account'])
+            except RucioException as e:
+                msg = "Cannot initialize Rucio Client. Error: %s" % str(e)
+                raise RucioClientException(msg)
