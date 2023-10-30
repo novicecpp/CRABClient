@@ -382,7 +382,8 @@ class SubCommand(ConfigCommand):
                 from rucio.client import Client
                 from rucio.common.exception import RucioException
                 if hasattr(self.options, 'userlfn') and self.options.userlfn is not None\
-                    and (self.options.userlfn.startswith('/store/user/rucio/') or self.options.userlfn.startswith('/store/group/rucio/')):
+                    and (self.options.userlfn.startswith('/store/user/rucio/')
+                         or self.options.userlfn.startswith('/store/group/rucio/')):
                     account = getRucioAccountFromLFN(self.options.userlfn)
                 else:
                     account = getUsername(self.proxyfilename, logger=self.logger)
