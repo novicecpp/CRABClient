@@ -797,26 +797,3 @@ def execute_command(command=None, logger=None, timeout=None, redirect=True):
         logger.debug('output : %s\n error: %s\n retcode : %s' % (stdout, stderr, rc))
 
     return stdout, stderr, rc
-
-
-def initRucioClient(selfobj, lfn=None):
-    selfobj.rucio = None
-    if selfobj.cmdconf['requiresRucio']:
-        if os.environ.get('RUCIO_HOME', None):
-            from ServerUtilities import getRucioAccountFromLFN
-            from rucio.client import Client
-            from rucio.common.exception import RucioException
-            from CRABClient.UserUtilities import getUsername
-            if lfn and (lfn.startswith('/store/user/rucio/')\
-               or lfn.startswith('/store/group/rucio/')):
-                account = getRucioAccountFromLFN(selfobj.options.userlfn)
-            else:
-                account = getUsername(selfobj.proxyfilename, logger=selfobj.logger)
-            os.environ['RUCIO_ACCOUNT'] = account
-            try:
-                selfobj.rucio = Client()
-                me = selfobj.rucio.whoami()
-                selfobj.logger.info('Rucio client intialized for account %s' % me['account'])
-            except RucioException as e:
-                msg = "Cannot initialize Rucio Client. Error: %s" % str(e)
-                raise RucioClientException(msg)

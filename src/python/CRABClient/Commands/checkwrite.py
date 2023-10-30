@@ -35,6 +35,7 @@ class checkwrite(SubCommand):
             self.logger.info('Will check write permission in the default location /store/user/<username>')
             self.lfnPrefix = '/store/user/' + username
 
+        self.initRucioClient(self.lfnPrefix)
         ## Check that the location where we want to check write permission
         ## is one where the user will be allowed to stageout.
         self.logger.info("Validating LFN %s...", self.lfnPrefix)
