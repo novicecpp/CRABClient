@@ -60,8 +60,13 @@ class checkwrite(SubCommand):
             return {'commandStatus':'FAILED'}
 
         # if user asked to to use Rucio for ASO we simply check quota, since user can't directly write there
-        if self.lfnPrefix.startswith('/store/user/rucio/') or self.lfnPrefix.startswith('/store/group/rucio/') :
-            status = self.checkRucioQuota(username, site)
+        if self.lfnPrefix.startswith('/store/user/rucio/') or self.lfnPrefix.startswith('/store/group/rucio/'):
+            if self.lfnPrefix.startswith('/store/group/rucio/'):
+                # Rucio group's username always has `_group` suffix.
+                rucioUsername = '%s_group' % self.lfnPrefix.split('/')[4]
+            else:
+                rucioUsername = username
+            status = self.checkRucioQuota(rucioUsername, site)
             return {'commandStatus': status}
 
         cp_cmd = ""
@@ -237,14 +242,12 @@ exit(0)
         return pfn
 
 
-    def checkRucioQuotaClient(self, username, site):
-        status ='FAILED'
+    def checkRucioQuota(self, username, site):
         if not self.rucio:
             self.logger.warning("Rucio client not available with this CMSSW version. Can not check")
-        hasQuota, isQuotaWarning, remainQuota = isEnoughRucioQuota(self.rucio, username, site, self.logger)
-        if not hasQuota:
-            msg = "your available space is not enough to allow CRAB to submit jobs."
-        else:
+            return {'commandStatus':'FAILED'}
+        hasQuota, isEnough, isQuotaWarning, remainQuota = isEnoughRucioQuota(self.rucio, username, site)
+        if hasQuota and isEnough:
             status = 'SUCCESS'
             msg = "you have %d GB available as Rucio quota at site %s" % (remainQuota, site)
             self.logger.info(msg)
@@ -252,6 +255,14 @@ exit(0)
                 msg = 'This is very little and although CRAB will submit, stageout may fail. Please cleanup'
                 self.logger.warning(msg)
             self.logger.info("You can use this site for Rucio-based ASO")
+        elif hasQuota and not isEnough:
+            msg = "your available space is not enough to allow CRAB to submit jobs. Cleanup !!"
+            status = 'FAILED'
+        else:
+            msg = "You do not have any Rucio quota at site %s" % site
+            self.logger.error(msg)
+            status ='FAILED'
+
         # print summary of rucio quota
         msg = "FYI this is your Rucio quota situation (rounded to GBytes = 10^9 Bytes)"
         quotaRecords = self.rucio.get_local_account_usage(username)
