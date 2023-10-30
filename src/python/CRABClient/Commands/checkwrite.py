@@ -240,7 +240,7 @@ exit(0)
     def checkRucioQuota(self, lfn, site):
         if not self.rucio:
             self.logger.warning("Rucio client not available with this CMSSW version. Can not check")
-            return {'commandStatus':'FAILED'}
+            return 'FAILED'
         hasQuota, isEnough, isQuotaWarning, remainQuota = isEnoughRucioQuota(self.rucio, site)
         if hasQuota and isEnough:
             status = 'SUCCESS'
@@ -269,7 +269,7 @@ exit(0)
             freeGB = record['bytes_remaining'] / 1000 / 1000 / 1000
             msg += "\n%20s%10d%10d%10d" % (site, totalGB, usedGB, freeGB)
         self.logger.info(msg)
-        return {'commandStatus': status}
+        return status
 
     def cp(self, pfn, command):
 
