@@ -242,10 +242,11 @@ exit(0)
         if not self.rucio:
             self.logger.warning("Rucio client not available with this CMSSW version. Can not check")
             return 'FAILED'
-        hasQuota, isEnough, isQuotaWarning, remainQuota = isEnoughRucioQuota(self.rucio, site)
+        hasQuota, isEnough, isQuotaWarning, quota = isEnoughRucioQuota(self.rucio, site)
+        freeGB = quota[2]
         if hasQuota and isEnough:
             status = 'SUCCESS'
-            msg = "you have %d GB available as Rucio quota at site %s" % (remainQuota, site)
+            msg = "you have %d GB available as Rucio quota at site %s" % (freeGB, site)
             self.logger.info(msg)
             if isQuotaWarning:
                 msg = 'This is very little and although CRAB will submit, stageout may fail. Please cleanup'
