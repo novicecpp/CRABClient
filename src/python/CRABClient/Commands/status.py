@@ -18,7 +18,8 @@ if sys.version_info >= (3, 0):
 if sys.version_info < (3, 0):
     from urllib import quote
 
-from CRABClient.ClientUtilities import colors, validateJobids, compareJobids
+from CRABClient.ClientUtilities import (colors, validateJobids, compareJobids,
+                                       useRucioClientFromLFN)
 from CRABClient.ClientUtilities import PKL_R_MODE
 from CRABClient.UserUtilities import curlGetFileFromURL, getColumn
 from CRABClient.Commands.SubCommand import SubCommand
@@ -1140,7 +1141,7 @@ class status(SubCommand):
             return
         # We need to do this untils CMS Rucio fix ther permission issue
         # See https://mattermost.web.cern.ch/cms-o-and-c/pl/ej7zwkr747rifezzcyyweisx9r
-        with useRucioClientFromLFN(self.rucio, lfn, self.logger) as client:
+        with useRucioClientFromLFN(self.rucio, outputLfn, self.logger) as client:
             quotaCheck = isEnoughRucioQuota(client, site)
         self.logger.info("You have %d/%d GBytes available as Rucio quota at site %s" % (quotaCheck['free'], quotaCheck['totalGB'], site))
         if not quotaCheck['isEnough']:
