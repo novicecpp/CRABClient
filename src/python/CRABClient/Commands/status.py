@@ -73,8 +73,6 @@ class status(SubCommand):
             outputDatasetList = None
         outDataset = outputDatasetList[0] if outputDatasetList else None # we do not support multiple output datasets anymore
 
-        self.initRucioClient(outputLfn)
-
         #Print information from the database
         self.printTaskInfo(crabDBInfo, user)
         if not rootDagId:
@@ -1140,19 +1138,19 @@ class status(SubCommand):
             return
         if site == 'T3_CERN_CERNBOX':
             return
-
-        _, isEnough, isQuotaWarning, quota = isEnoughRucioQuota(self.rucio, site)
-
-        totalGB, _, freeGB = quota
-        print("You have %d/%d GBytes available as Rucio quota at site %s" % (freeGB, totalGB, site))
-        if not isEnough:
+        # We need to do this untils CMS Rucio fix ther permission issue
+        # See https://mattermost.web.cern.ch/cms-o-and-c/pl/ej7zwkr747rifezzcyyweisx9r
+        with useRucioClientFromLFN(self.rucio, lfn, self.logger) as client:
+            quotaCheck = isEnoughRucioQuota(client, site)
+        self.logger.info("You have %d/%d GBytes available as Rucio quota at site %s" % (quotaCheck['free'], quotaCheck['totalGB'], site))
+        if not quotaCheck['isEnough']:
             msg = "%sALARM: Not enough space at ASO destination %s" % (colors.RED, colors.NORMAL)
             msg += "\n This very dangerous. Your output stageout will get stuck."
             msg += "\n status information will be stale and could be misleading"
             msg += "\n %sYOU MUST CLEANUP YOUR RUCIO SPACE IMMEDIATELY (remove some rules)%s:" % (colors.RED, colors.NORMAL)
             self.logger.warning(msg)
             return
-        if isQoutaWarning:
+        if quotaCheck['isQoutaWarning']:
             msg = "%sWarning%s: " % (colors.RED, colors.NORMAL)
             msg += "This may be not enough for your output, leading to problems. Consider cleaning up"
             self.logger.warning(msg)

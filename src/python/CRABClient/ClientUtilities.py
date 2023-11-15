@@ -21,6 +21,7 @@ if sys.version_info >= (3, 0):
 if sys.version_info < (3, 0):
     from urlparse import urlparse
 from optparse import OptionValueError
+from contextlib import contextmanager
 
 ## CRAB dependencies
 import CRABClient.Emulator
@@ -797,3 +798,30 @@ def execute_command(command=None, logger=None, timeout=None, redirect=True):
         logger.debug('output : %s\n error: %s\n retcode : %s' % (stdout, stderr, rc))
 
     return stdout, stderr, rc
+
+
+@contextmanager
+def useRucioClientFromLFN(classClient, lfn, logger):
+    """
+    context lib for switching to group account from lfn
+    """
+    from ServerUtilities import getRucioAccountFromLFN
+    import pdb; pdb.set_trace()
+    account = getRucioAccountFromLFN(lfn)
+    if classClient.account == account:
+        yield classClient
+    else:
+        yield getRucioClient(account, logger)
+
+def getRucioClient(account, logger):
+    from rucio.client import Client
+    from rucio.common.exception import RucioException
+    try:
+        os.environ['RUCIO_ACCOUNT'] = account
+        client = Client()
+        me = client.whoami()
+        logger.info('Rucio client intialized for account %s' % me['account'])
+        return client
+    except RucioException as e:
+        msg = "Cannot initialize Rucio Client. Error: %s" % str(e)
+        raise RucioClientException(msg)

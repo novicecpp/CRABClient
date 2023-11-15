@@ -12,7 +12,7 @@ from ServerUtilities import SERVICE_INSTANCES
 
 import CRABClient.Emulator
 from CRABClient import __version__
-from CRABClient.ClientUtilities import colors
+from CRABClient.ClientUtilities import colors, getRucioClient
 from CRABClient.CRABOptParser import CRABCmdOptParser
 from CRABClient.CredentialInteractions import CredentialInteractions
 from CRABClient.ClientUtilities import loadCache, getWorkArea, server_info, createWorkArea, execute_command
@@ -376,6 +376,14 @@ class SubCommand(ConfigCommand):
             self.s3tester.setDbInstance('preprod')
             self.handleMyProxy()
 
+        # init rucio client
+        if self.cmdconf['requiresRucio']:
+            if os.environ.get('RUCIO_HOME', None):
+                account = getUsername(self.proxyfilename, logger=self.logger)
+                self.rucio = getRucioClient(account=account, logger=self.logger)
+            else:
+                self.rucio = None
+
         # Validate the command options
         self.validateOptions()
         self.validateOptions()
@@ -583,30 +591,6 @@ class SubCommand(ConfigCommand):
             with open(crabCacheFileName_tmp, 'w') as fd:
                 json.dump(self.crab3dic, fd)
             os.rename(crabCacheFileName_tmp, crabCacheFileName)
-
-    def initRucioClient(self, lfn):
-        if self.cmdconf['requiresRucio']:
-            if os.environ.get('RUCIO_HOME', None):
-                from ServerUtilities import getRucioAccountFromLFN
-                from rucio.client import Client
-                from rucio.common.exception import RucioException
-                if hasattr(self.options, 'userlfn') and self.options.userlfn is not None\
-                    and (self.options.userlfn.startswith('/store/user/rucio/')
-                         or self.options.userlfn.startswith('/store/group/rucio/')):
-                    account = getRucioAccountFromLFN(self.options.userlfn)
-                else:
-                    account = getUsername(self.proxyfilename, logger=self.logger)
-                os.environ['RUCIO_ACCOUNT'] = account
-                try:
-                    self.rucio = Client()
-                    me = self.rucio.whoami()
-                    self.logger.info('Rucio client intialized for account %s' % me['account'])
-                except RucioException as e:
-                    msg = "Cannot initialize Rucio Client. Error: %s" % str(e)
-                    raise RucioClientException(msg)
-            else:
-                self.rucio = None
-
 
     def __call__(self):
         """
