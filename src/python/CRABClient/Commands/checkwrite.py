@@ -237,7 +237,6 @@ exit(0)
         pfn = rucioOut.rstrip()
         return pfn
 
-
     def checkRucioQuota(self, lfn, site):
         if not self.rucio:
             self.logger.warning("Rucio client not available with this CMSSW version. Can not check")
