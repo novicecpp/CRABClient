@@ -21,7 +21,6 @@ if sys.version_info >= (3, 0):
 if sys.version_info < (3, 0):
     from urlparse import urlparse
 from optparse import OptionValueError
-from contextlib import contextmanager
 
 ## CRAB dependencies
 import CRABClient.Emulator
@@ -825,5 +824,5 @@ def getRucioClientFromLFN(origClient, lfn, logger):
         logger.debug('Initializing new Rucio client for account %s' % me['account'])
         return client
     except RucioException as e:
-        msg = "Cannot initialize Rucio Client. Error: %s" % str(e)
-        raise RucioClientException(msg)
+        msg = "Cannot initialize Rucio Client."
+        raise RucioClientException(msg) from e

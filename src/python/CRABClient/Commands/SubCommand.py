@@ -388,6 +388,10 @@ class SubCommand(ConfigCommand):
             else:
                 self.rucio = None
 
+        # Validate the command options
+        self.validateOptions()
+        self.validateOptions()
+
         # Log user command and options used for debuging purpose.
         self.logger.debug('Command use: %s' % self.name)
         self.logger.debug('Options use: %s' % cmdargs)
@@ -398,6 +402,7 @@ class SubCommand(ConfigCommand):
         self.logger.debug("Server base url is %s" %(self.serverurl))
         if self.cmdconf['requiresREST']:
             self.logger.debug("Command api %s" %(self.defaultApi))
+
 
     def serverInstance(self):
         """
@@ -591,6 +596,7 @@ class SubCommand(ConfigCommand):
             with open(crabCacheFileName_tmp, 'w') as fd:
                 json.dump(self.crab3dic, fd)
             os.rename(crabCacheFileName_tmp, crabCacheFileName)
+
 
     def __call__(self):
         """
