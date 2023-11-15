@@ -799,28 +799,30 @@ def execute_command(command=None, logger=None, timeout=None, redirect=True):
 
     return stdout, stderr, rc
 
-
-@contextmanager
-def useRucioClientFromLFN(classClient, lfn, logger):
+def getRucioClientFromLFN(origClient, lfn, logger):
     """
-    context lib for switching to group account from lfn
+    Get appropriate Rucio client with account parsing from LFN.
+
+    :param origClient:
+    :type origClient:
+    :param lfn: LFN
+    :type lfn: str
+    :param logger: logger object
+    :type logger: logging
+
+    :return: rucio client object
+    :rtype: rucio.client.Client
     """
     from ServerUtilities import getRucioAccountFromLFN
-    import pdb; pdb.set_trace()
-    account = getRucioAccountFromLFN(lfn)
-    if classClient.account == account:
-        yield classClient
-    else:
-        yield getRucioClient(account, logger)
-
-def getRucioClient(account, logger):
     from rucio.client import Client
     from rucio.common.exception import RucioException
+    account = getRucioAccountFromLFN(lfn)
+    if origClient.account == account:
+        return origClient
     try:
-        os.environ['RUCIO_ACCOUNT'] = account
-        client = Client()
+        client = Client(account=account)
         me = client.whoami()
-        logger.info('Rucio client intialized for account %s' % me['account'])
+        logger.debug('Initializing new Rucio client for account %s' % me['account'])
         return client
     except RucioException as e:
         msg = "Cannot initialize Rucio Client. Error: %s" % str(e)

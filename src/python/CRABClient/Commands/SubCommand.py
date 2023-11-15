@@ -12,7 +12,7 @@ from ServerUtilities import SERVICE_INSTANCES
 
 import CRABClient.Emulator
 from CRABClient import __version__
-from CRABClient.ClientUtilities import colors, getRucioClient
+from CRABClient.ClientUtilities import colors
 from CRABClient.CRABOptParser import CRABCmdOptParser
 from CRABClient.CredentialInteractions import CredentialInteractions
 from CRABClient.ClientUtilities import loadCache, getWorkArea, server_info, createWorkArea, execute_command
@@ -379,14 +379,14 @@ class SubCommand(ConfigCommand):
         # init rucio client
         if self.cmdconf['requiresRucio']:
             if os.environ.get('RUCIO_HOME', None):
-                account = getUsername(self.proxyfilename, logger=self.logger)
-                self.rucio = getRucioClient(account=account, logger=self.logger)
+                username = getUsername(self.proxyfilename, logger=self.logger)
+                from rucio.client import Client
+                os.environ['RUCIO_ACCOUNT'] = username
+                self.rucio = Client()
+                me = self.rucio.whoami()
+                self.logger.info('Rucio client intialized for account %s' % me['account'])
             else:
                 self.rucio = None
-
-        # Validate the command options
-        self.validateOptions()
-        self.validateOptions()
 
         # Log user command and options used for debuging purpose.
         self.logger.debug('Command use: %s' % self.name)
