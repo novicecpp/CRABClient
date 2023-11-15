@@ -1,6 +1,6 @@
 import os
 import re
-import imp
+import imp 
 import json
 import types
 from ast import literal_eval
@@ -17,8 +17,7 @@ from CRABClient.CRABOptParser import CRABCmdOptParser
 from CRABClient.CredentialInteractions import CredentialInteractions
 from CRABClient.ClientUtilities import loadCache, getWorkArea, server_info, createWorkArea, execute_command
 from CRABClient.ClientExceptions import (ConfigurationException, MissingOptionException,
-                                         EnvironmentException, CachefileNotFoundException,
-                                         RucioClientException)
+                                         EnvironmentException, CachefileNotFoundException)
 from CRABClient.ClientMapping import (renamedParams, commandsConfiguration, configParametersInfo,
                                       getParamDefaultValue, deprecatedParams)
 from CRABClient.UserUtilities import getUsername
@@ -352,9 +351,9 @@ class SubCommand(ConfigCommand):
         # At this point we check if there is a valid proxy, and
         # eventually create a new one. If the proxy was not created by CRAB, we check that the
         # VO role/group in the proxy are the same as specified by the user in the configuration
-        # file (or in the command line options). If it is not, we ask the user if he wants to
-        # overwrite the current proxy. If he doesn't want to overwrite it, we don't continue
-        # and ask him to provide the VO role/group as in the existing proxy.
+        # file (or in the command line options). If it is not, we ask the user if he wants to 
+        # overwrite the current proxy. If he doesn't want to overwrite it, we don't continue 
+        # and ask him to provide the VO role/group as in the existing proxy. 
         # Finally, delegate the proxy to myproxy server.
         self.handleVomsProxy(proxyOptsSetPlace)
 
@@ -376,7 +375,6 @@ class SubCommand(ConfigCommand):
             self.s3tester.setDbInstance('preprod')
             self.handleMyProxy()
 
-        # init rucio client
         if self.cmdconf['requiresRucio']:
             if os.environ.get('RUCIO_HOME', None):
                 username = getUsername(self.proxyfilename, logger=self.logger)
@@ -477,7 +475,7 @@ class SubCommand(ConfigCommand):
         return
 
     def handleMyProxy(self):
-        """
+        """ 
         check myproxy credential and delegate again it if necessary.
         takes no input and returns no output, bur raises exception if delegation failed
         """
