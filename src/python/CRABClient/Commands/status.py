@@ -244,22 +244,23 @@ class status(SubCommand):
             containerInfo = {
                 'transferContainerName': getColumn(crabDBInfo, 'tm_transfer_container'),
                 'transferRuleID': getColumn(crabDBInfo, 'tm_transfer_rule'),
-                'publishRuleID': getColumn(crabDBInfo, 'tm_publish_rule'),
+                'multiPubRule': json.loads(getColumn(crabDBInfo, 'tm_multipub_rule')),
             }
             if containerInfo['transferRuleID']:
                 container = containerInfo
 
         shortResult = self.printOverview(statusCacheInfo, automaticSplitt, proxiedWebDir, container)
         pubStatus = self.printPublication(publicationEnabled, shortResult['jobsPerStatus'], shortResult['numProbes'],
-                                          shortResult['numUnpublishable'], taskname, user, crabDBInfo, container=container)
+                                          shortResult['numUnpublishable'], taskname, user, crabDBInfo)
         self.printErrors(statusCacheInfo, automaticSplitt)
 
         if not self.options.long and not self.options.sort:  # already printed for these options
             self.printDetails(statusCacheInfo, automaticSplitt, self.jobids, True, maxMemory, maxJobRuntime, numCores)
-
         if self.options.summary:
             self.printSummary(statusCacheInfo)
         if self.options.long or self.options.sort:
+            # print all publish containers and its rule.
+            self.printPublishContainer(container)
             # If user correctly passed some jobid CSVs to use in the status --long, self.jobids
             # will be a list of strings already parsed from the input by the validateOptions()
             if self.jobids:
@@ -1023,7 +1024,7 @@ class status(SubCommand):
         msg += "\nTips on how to check on Rucio StageOut at https://twiki.cern.ch/twiki/bin/view/CMSPublic/CRAB3FAQ#Stageout_with_Rucio "
         self.logger.info(msg)
 
-    def printOutputDatasets(self, outputDatasets, includeDASURL=False, container=None):
+    def printOutputDatasets(self, outputDatasets, includeDASURL=False):
         """
         Function to print the list of output datasets (with or without the DAS URL).
         """
@@ -1031,19 +1032,16 @@ class status(SubCommand):
             msg = ""
             if includeDASURL:
                 for outputDataset in outputDatasets:
-                    msg += "\nOutput dataset:\t\t\t%s" % (outputDataset)
-                    msg += "\nOutput dataset DAS URL:\t\thttps://cmsweb.cern.ch/das/request?input={0}&instance=prod%2Fphys03".format(quote(outputDataset, ''))
+                    msg += "\nOutput DBS dataset:\t\t\t%s" % (outputDataset)
+                    msg += "\nOutput DBS dataset DAS URL:\t\thttps://cmsweb.cern.ch/das/request?input={0}&instance=prod%2Fphys03".format(quote(outputDataset, ''))
             else:
                 extratab = "\t" if len(outputDatasets) == 1 else ""
-                msg += "\nOutput dataset%s:\t\t%s%s" % ("s" if len(outputDatasets) > 1 else "", extratab, outputDatasets[0])
+                msg += "\nOutput DBS dataset%s:\t\t%s%s" % ("s" if len(outputDatasets) > 1 else "", extratab, outputDatasets[0])
                 for outputDataset in outputDatasets[1:]:
                     msg += "\n\t\t\t\t%s%s" % (extratab, outputDataset)
-            if container:
-                msg += "\nPublish container's rule:\thttps://cms-rucio-webui.cern.ch/rule?rule_id=%s" % (container['publishRuleID'])
-
             self.logger.info(msg)
 
-    def printPublication(self, publicationEnabled, jobsPerStatus, numProbes, numUnpublishable, taskname, user, crabDBInfo, container=None):
+    def printPublication(self, publicationEnabled, jobsPerStatus, numProbes, numUnpublishable, taskname, user, crabDBInfo):
         """Print information about the publication of the output files in DBS.
         """
         # Collecting publication information
@@ -1129,7 +1127,7 @@ class status(SubCommand):
                         msg += ("\n\n\t%" + str(ndigits) + "s files failed to publish with following error message:\n\n\t\t%s") % (numFailedFiles, failureReason)
                 self.logger.info(msg)
             # Print the output datasets with the corresponding DAS URL.
-            self.printOutputDatasets(outputDatasets, includeDASURL=True, container=container)
+            self.printOutputDatasets(outputDatasets, includeDASURL=True)
 
         return pubStatus
 
@@ -1156,6 +1154,16 @@ class status(SubCommand):
             msg += "This may be not enough for your output, leading to problems. Consider cleaning up"
             self.logger.warning(msg)
         return
+
+    def printPublishContainer(self, container):
+        if not self.rucio:
+            return
+        multiPubRule = container['multiPubRule']
+        msg ='\nAll Rucio Publish Containers:'
+        for name, ruleID in multiPubRule.items():
+            msg += "\n\tName:\t%s" % (name)
+            msg += "\n\tRule:\thttps://cms-rucio-webui.cern.ch/rule?rule_id=%s" % (ruleID)
+        self.logger.info(msg)
 
     def setOptions(self):
         """
