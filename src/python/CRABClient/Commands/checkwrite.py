@@ -87,8 +87,9 @@ class checkwrite(SubCommand):
 
         self.logger.info('Will check write permission in %s on site %s', self.lfnPrefix, self.options.sitename)
         timestamp = str(time.strftime("%Y%m%d_%H%M%S"))
-        self.filename = str(uuid.uuid4()) + '.tmp'
-        self.subdir = 'crab3checkwrite_' + timestamp
+        uuidStr = str(uuid.uuid4())
+        self.filename = uuidStr + '.tmp'
+        self.subdir = 'crab3checkwrite_' + timestamp + '_' + uuidStr
         lfn = self.lfnPrefix + '/' + self.subdir + '/' + self.filename
         try:
             if self.rucio:
