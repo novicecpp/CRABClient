@@ -2,6 +2,7 @@ import os
 import re
 import time
 import datetime
+import uuid
 
 from CRABClient.Commands.SubCommand import SubCommand
 from CRABClient.ClientUtilities import (execute_command, colors, cmd_exist,
@@ -86,7 +87,7 @@ class checkwrite(SubCommand):
 
         self.logger.info('Will check write permission in %s on site %s', self.lfnPrefix, self.options.sitename)
         timestamp = str(time.strftime("%Y%m%d_%H%M%S"))
-        self.filename = 'crab3checkwrite_' + timestamp  + '.tmp'
+        self.filename = str(uuid.uuid4()) + '.tmp'
         self.subdir = 'crab3checkwrite_' + timestamp
         lfn = self.lfnPrefix + '/' + self.subdir + '/' + self.filename
         try:
